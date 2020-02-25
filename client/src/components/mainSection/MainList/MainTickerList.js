@@ -8,7 +8,7 @@ export class MainTickerList extends Component {
             current = this.props.tickers;
         }
         return (
-            <div>
+            <div id='tickerList'>
                 {current.map(ticker =>
                     <Ticker key={ticker} ticker={ticker} addShares={this.props.addShares} deleteTicker={this.props.deleteTicker} showTickerInfo={this.props.showTickerInfo} />
                 )}

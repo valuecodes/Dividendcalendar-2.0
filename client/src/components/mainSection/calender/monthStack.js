@@ -8,7 +8,7 @@ export class MonthStack extends Component {
                 <div className='monthPadding'></div>
                 <div className='dividends'>
                     {this.props.monthStack.data.map(dividend =>
-                        <CalenderMonth key={dividend.ticker} ticker={dividend.ticker} payment={dividend.sum} />
+                        <CalenderMonth key={dividend.id} ticker={dividend.ticker} payment={dividend.sum} />
                     )}
                 </div>
             </div>

@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Line, Bar } from 'react-chartjs-2';
+import { Line } from 'react-chartjs-2';
 import 'chartjs-plugin-datalabels';
 
 export class EarningsChart extends Component {
@@ -10,59 +10,85 @@ export class EarningsChart extends Component {
             selectedCompany: [],
             chartData: {},
             chartOptions: {},
-            timeFrame: 'Yearly',
+            timeFrame: 'Year',
             payoutRatio: true,
             peRatio: false,
             earnings: false,
             earningsYield: false,
+            current: false,
             chartChange: "Earnings Chart",
             chartLabel: 'Payout Ratio'
         };
     }
     static getDerivedStateFromProps(props, state) {
         if (JSON.stringify(props.selectedCompany) !== '[]') {
-
+            console.log(props);
             let label = [];
             let edata = [];
             let ddata = [];
             let pdata = [];
             let pedata = [];
             let eYdata = [];
-            let wData = [];
-            if (state.peRatio === false && state.earningsYield === false) {
-                if (state.timeFrame === 'Yearly') {
-                    for (var i = 2014; i < 2020; i++) {
-                        let yearlyE = props.selectedCompany.earnings.filter(element => element.year == i);
-                        let sumE = 0;
-                        yearlyE.forEach(element => sumE += Number(element.eps));
+            let aData = [];
+            let lData = [];
+            let dlabel = true;
+            let country = props.selectedCompany.tickerData.country;
 
-                        let yearlyD = props.selectedCompany.dividend.filter(element => element.year == i);
-                        let sumD = 0;
-                        yearlyD.forEach(element => (sumD += Number(element.dividend)));
-                        edata.push(sumE.toFixed(2));
-                        ddata.push(sumD.toFixed(2));
-                        label.push(i);
+            let max = props.selectedCompany.qFinancials[0].year;
+            let min = props.selectedCompany.qFinancials[props.selectedCompany.qFinancials.length - 1].year
+
+            if (state.peRatio === false && state.earningsYield === false) {
+                if (state.timeFrame === 'Year' || state.payoutRatio) {
+                    for (var x = min; x <= max; x++) {
+                        let xYear=x
+                        let yearlyE = props.selectedCompany.qFinancials.filter(element => element.year === xYear);
+                        let sumE = 0;
+                        if (state.current === true) {
+                            aData.push(yearlyE[0].currentassets);
+                            lData.push(yearlyE[0].currentliabilities);
+                        } else {
+                            yearlyE.forEach(element => sumE += element.eps);
+                            let yearlyD = props.selectedCompany.dividendData.filter(element => element.year === xYear);
+                            let sumD = 0;
+                            yearlyD.forEach(element => (sumD += Number(element.dividend)));
+                            edata.push(sumE.toFixed(2));
+                            ddata.push(sumD.toFixed(2));
+                        }
+                        label.push(xYear);
                     }
                 } else {
-                    props.selectedCompany.earnings.forEach(element => {
-                        if (element.year >= 2014) {
-                            label.push(element.year + ' Q' + element.quarter);
-                            edata.push(Number(element.eps));
+                    if (state.current === true) {
+                        props.selectedCompany.qFinancials.forEach(element => {
+                            if (element.year >= min) {
+                                label.unshift(element.year + ' Q' + element.quarter);
+                                aData.unshift(Number(element.currentassets));
+                                lData.unshift(Number(element.currentliabilities));
+                            }
+                        });
+                    } else {
+                        props.selectedCompany.qFinancials.forEach(element => {
+                            if (element.year >= min) {
+                                label.unshift(element.year + ' Q' + element.quarter);
+                                edata.unshift(Number(element.eps));
+                            }
+                        });
+                        if (props.selectedCompany.tickerData.dividendType === 'Quarterly') {
+                            props.selectedCompany.dividendData.forEach(element => {
+                                if (element.year >= min) {
+                                    ddata.unshift(element.dividend);
+                                }
+                            });
                         }
-                    });
-                    props.selectedCompany.dividend.forEach(element => {
-                        if (element.year >= 2014) {
-                            ddata.unshift(element.dividend);
+                        if (state.earnings) {
+                            dlabel = false;
                         }
-                    });
+                    }
                 }
             } else {
                 let qEData = {};
-                props.selectedCompany.earnings.forEach(element => {
-                    if (element.year >= 2014) {
-                        // label.push(element.year + ' Q' + element.quarter);
+                props.selectedCompany.qFinancials.forEach(element => {
+                    if (element.year >= min) {
                         qEData[element.year + '/' + element.quarter] = Number(element.eps);
-                        // edata.push(Number(element.eps));
                     }
                 });
 
@@ -80,9 +106,7 @@ export class EarningsChart extends Component {
                 }
 
                 props.selectedCompany.weeklyData.forEach(element => {
-                    if (element.year >= 2014 && element.year < 2020) {
-                        // let sum;
-                        // for (var i = 0;)
+                    if (element.year >= min && element.year <= max) {
                         label.unshift(element.year + ' Q' + element.quarter);
                         if (state.earningsYield) {
                             eYdata.unshift(((trailing[element.year + '/' + element.quarter] / element.close) * 100).toFixed(2));
@@ -93,17 +117,14 @@ export class EarningsChart extends Component {
                 });
             }
 
-            let dlabel = true;
-
-            if (state.peRatio || state.earningsYield) {
+            if (state.peRatio || state.earningsYield || state.current) {
                 dlabel = false;
             }
-
-
-            for (var i = 0; i < edata.length; i++) {
-                pdata.push((ddata[i] / edata[i] * 100).toFixed(0))
+            for (var z = 0; z < edata.length; z++) {
+                pdata.push((ddata[z] / edata[z] * 100).toFixed(0))
             }
-            let fontSize = state.timeFrame === 'Yearly' && state.payoutRatio ? 25 : 12;
+
+            let fontSize = state.timeFrame === 'Year' && state.payoutRatio ? 15 : 10;
             let data = {
                 labels: label,
                 datasets: [
@@ -169,6 +190,26 @@ export class EarningsChart extends Component {
                         pointRadius: 0,
                         pointHitRadius: 10,
                         hidden: !state.earningsYield
+                    },
+                    {
+                        data: aData,
+                        type: 'bar',
+                        label: 'Current Assets',
+                        backgroundColor: 'rgba(71, 189, 138, 0.8)',
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        pointHitRadius: 10,
+                        hidden: !state.current
+                    },
+                    {
+                        data: lData,
+                        type: 'bar',
+                        label: 'Current Liabilities',
+                        backgroundColor: 'rgba(255, 50, 97,0.8)',
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        pointHitRadius: 10,
+                        hidden: !state.current
                     }
                 ]
             }
@@ -191,18 +232,25 @@ export class EarningsChart extends Component {
                             } else {
                                 return value;
                             }
-
                         }
                     },
                 },
                 scales: {
                     yAxes: [{
                         ticks: {
-                            beginAtZero: state.payoutRatio || state.earnings ? true : false,
+                            beginAtZero: true,
                             callback: function (value) {
                                 if (state.payoutRatio || state.earningsYield) {
                                     return value + "%";
-                                } else {
+                                } else if (state.current) {
+                                    if (country === 'USA') {
+                                        return value + 'B'
+                                    } else if (country === 'FIN') {
+                                        return value + 'M'
+                                    }
+
+                                }
+                                else {
                                     return value;
                                 }
 
@@ -210,8 +258,9 @@ export class EarningsChart extends Component {
                         }
                     }],
                     xAxes: [{
-                        offset: state.payoutRatio,
+                        offset: state.current || state.payoutRatio,
                         ticks: {
+                            // beginAtZero: true,
                             fontSize: 14
                         }
                     }],
@@ -233,16 +282,23 @@ export class EarningsChart extends Component {
                 //     }
                 // },
                 legend: {
-                    display: state.earnings,
+                    display: state.earnings || state.current,
                     position: 'top',
                     labels: {
                         "fontSize": 15,
                         filter: function (item, chart) {
                             let check = true;
-                            if (item.text.includes('atio') || item.text.includes('Yield')) {
-                                check = false
+                            if (state.earnings) {
+                                if (item.text.includes('atio') || item.text.includes('Yield') || item.text.includes('Current')) {
+                                    check = false
+                                }
+                                return check;
+                            } else if (state.current) {
+                                if (item.text.includes('Current')) {
+                                    return true;
+                                }
                             }
-                            return check;
+
                         }
                     },
                     fontSize: 30
@@ -258,10 +314,10 @@ export class EarningsChart extends Component {
     }
 
     changeTimeFrame() {
-        if (this.state.timeFrame === 'Yearly') {
-            this.setState({ timeFrame: 'Quarterly' })
+        if (this.state.timeFrame === 'Year') {
+            this.setState({ timeFrame: 'Quarter' })
         } else {
-            this.setState({ timeFrame: 'Yearly' })
+            this.setState({ timeFrame: 'Year' })
         }
     }
 
@@ -270,6 +326,7 @@ export class EarningsChart extends Component {
         let peRatio = false;
         let earnings = false;
         let eYield = false;
+        let current = false;
         if (type === "Payout Ratio") {
             payRatio = true
         }
@@ -282,8 +339,11 @@ export class EarningsChart extends Component {
         if (type === "Earnings and Dividends") {
             earnings = true
         }
+        if (type === "Current Ratio") {
+            current = true
+        }
 
-        this.setState({ payoutRatio: payRatio, peRatio: peRatio, earnings: earnings, earningsYield: eYield, chartLabel: type, chartChange: type });
+        this.setState({ payoutRatio: payRatio, peRatio: peRatio, earnings: earnings, earningsYield: eYield, current: current, chartLabel: type, chartChange: type });
     }
 
     datasetKeyProvider() { return Math.random(); }
@@ -305,6 +365,7 @@ export class EarningsChart extends Component {
                     <button style={{ background: this.setColor("Earnings and Dividends") }} onClick={this.changeType.bind(this, "Earnings and Dividends")}>Earnings</button>
                     <button style={{ background: this.setColor("Historical PE-Ratio") }} onClick={this.changeType.bind(this, "Historical PE-Ratio")}>PE-ratio</button>
                     <button style={{ background: this.setColor("Earnings Yield") }} onClick={this.changeType.bind(this, "Earnings Yield")}>Earnings Yield</button>
+                    <button style={{ background: this.setColor("Current Ratio") }} onClick={this.changeType.bind(this, "Current Ratio")}>Current Ratio</button>
                 </div>
                 <Line
                     type={'Bar'}

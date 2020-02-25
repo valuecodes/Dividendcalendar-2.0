@@ -4,10 +4,10 @@ export class Buttons extends Component {
     render() {
         return (
             <div className='buttons'>
-                <button>Button 1</button>
-                <button>Button 2</button>
-                <button>Button 3</button>
-                <button>Button 4</button>
+                <button onClick={this.props.comparison} className='navButton'>Comparison</button>
+                <button className='navButton'>All stocks</button>
+                <button className='navButton'>Other Portfolios</button>
+                <button id='navButtonLast' className='navButton'>Save</button>
             </div>
         )
     }

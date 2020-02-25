@@ -7,9 +7,9 @@ export class NavBar extends Component {
     render() {
         return (
             <div className='navBar'>
-                <Buttons/>
-                <Search addTicker={this.props.addTicker}/>
-                <Stats/>
+                <Buttons comparison={this.props.comparison} />
+                <Search addTicker={this.props.addTicker} />
+                <Stats />
             </div>
         )
     }

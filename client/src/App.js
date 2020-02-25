@@ -7,6 +7,7 @@ import { MainTickerList } from './components/mainSection/MainList/MainTickerList
 import { Calender } from './components/mainSection/calender/calender';
 import { ChartSection } from './components/mainSection/chartSection/chartSection';
 import { TickerInfoPage } from './components/mainSection/tickerInfoSection/tickerInfoPage';
+import { PortfolioComparison } from './components/mainSection/portfolioComparison/portfolioComparison'
 
 export class App extends Component {
   active = [];
@@ -17,7 +18,9 @@ export class App extends Component {
       portfolios: [],
       currentportfolio: [],
       monthStack: [],
-      infoPage: ['hidden'],
+      infoPage: 'none',
+      portfolioComparison: 'none',
+      mainPage: '',
       selectedCompany: null
     };
   }
@@ -74,7 +77,6 @@ export class App extends Component {
           tickerFound = true;
         }
       }
-      console.log(tickerFound);
       if (!tickerFound) {
         // Add ticker to portfolio (name,shares)
         let newTicker = [id, shares];
@@ -83,7 +85,6 @@ export class App extends Component {
         this.savePortfolioToDB(current[0]);
         this.addDividendData([id], current[0], portfolios);
       } else {
-        console.log('test');
         this.savePortfolioToDB(current[0]);
         let portfolios = this.state.portfolios.map(portfolio => portfolio.isActive === true ? portfolio = current[0] : portfolio)
         this.setState({ currentportfolio: current[0], portfolios: portfolios });
@@ -94,7 +95,6 @@ export class App extends Component {
   deleteTicker(id) {
     for (var i = 0; i < this.state.currentportfolio.tickers.length; i++) {
       if (this.state.currentportfolio.tickers[i][0] === id) {
-        console.log(id);
         let updated = this.state.currentportfolio;
         updated.tickers.splice(i, 1);
         this.setState({ currentportfolio: updated });
@@ -203,96 +203,40 @@ export class App extends Component {
       fetch('http://localhost:3000/getDividendData', options)
         .then(res => res.json())
         .then(dbData => {
-          console.log(dbData);
-          let dividends = dbData.dividends;
-          let earnings = dbData.earnings;
-          let weeklyData = dbData.weeklydata;
-          let data = this.state.dividendData;
-
+          let divData = this.state.dividendData;
           class company {
-            constructor(id, ticker, name, country, dividendType, sector, isin, dividend, earnings) {
-              this.id = id;
-              this.ticker = ticker;
-              this.name = name;
-              this.country = country;
-              this.dividendType = dividendType;
-              this.sector = sector;
-              this.isin = isin;
-              this.dividend = [dividend]
-              this.earnings = [];
-              this.weeklyData = [];
+            constructor(tickerData, weeklyData, yearData, dividendData, qFinancials, insiderData) {
+              this.tickerData = tickerData;
+              this.weeklyData = weeklyData;
+              this.yearData = yearData;
+              this.dividendData = dividendData;
+              this.qFinancials = qFinancials;
+              this.insiderData = insiderData;
             }
           }
-
-          for (var i = 0; i < dividends.length; i++) {
-            let id = dividends[i].ticker_id;
-            let ticker = dividends[i].ticker;
-            let name = dividends[i].name;
-            let country = dividends[i].country;
-            let dividendType = dividends[i].dividendType;
-            let sector = dividends[i].sector;
-            let isin = dividends[i].isin;
-
-            delete dividends[i].ticker_id;
-            // delete dividends[i].ticker;
-            // delete dividends[i].name;
-            delete dividends[i].country;
-            delete dividends[i].dividendType;
-
-            dividends[i].exDiv = new Date(dividends[i].exDiv);
-            dividends[i].payDate = new Date(dividends[i].payDate)
-            dividends[i].dividend = Number(dividends[i].dividend);
-
-            if (data[ticker]) {
-              data[ticker].dividend.push(dividends[i])
-            } else {
-              data[ticker] = new company(id, ticker, name, country, dividendType, sector, isin, dividends[i]);
-            }
+          for (var i = 0; i < dbData.data.length; i++) {
+            divData[dbData.data[i][0].ticker] = new company(
+              dbData.data[i][0],
+              dbData.data[i][1],
+              dbData.data[i][2],
+              dbData.data[i][3],
+              dbData.data[i][4],
+              dbData.data[i][5]
+            );
           }
-          // console.log(data);
-
-          for (var j = 0; j < earnings.length; j++) {
-            delete earnings[j].dividendType;
-            delete earnings[j].isin;
-            earnings[j].date = new Date(earnings[j].date);
-            let ticker = earnings[j].ticker;
-            data[ticker].earnings.push(earnings[j])
-          }
-
-          for (var a = 0; a < weeklyData.length; a++) {
-            let wTicker = weeklyData[a].ticker;
-            delete weeklyData[a].id;
-            delete weeklyData[a].name;
-            delete weeklyData[a].sector;
-            delete weeklyData[a].country;
-            delete weeklyData[a].dividendType;
-            delete weeklyData[a].isin;
-            delete weeklyData[a].name;
-            delete weeklyData[a].ticker_id;
-            weeklyData[a].open = Number(weeklyData[a].open);
-            weeklyData[a].high = Number(weeklyData[a].high);
-            weeklyData[a].low = Number(weeklyData[a].low);
-            weeklyData[a].close = Number(weeklyData[a].close);
-            weeklyData[a].volume = Number(weeklyData[a].volume);
-            weeklyData[a].dividend = Number(weeklyData[a].dividend);
-            data[wTicker].weeklyData.push(weeklyData[a])
-          }
-
-          // this.setState({dividendData:data});
           if (!Object.keys(this.state.currentportfolio).length === true) {
             let portfolios = this.state.portfolios;
             portfolios.forEach(portfolio => {
-              portfolio.dividendData = data;
+              portfolio.dividendData = divData;
             });
             portfolios[0].isActive = true;
             this.setState({ currentportfolio: this.state.portfolios[0], portfolios: portfolios });
           } else {
-            currentPortfolio.dividendData = data;
+            currentPortfolio.dividendData = divData;
             this.setState({ currentportfolio: currentPortfolio, portfolios: allPortfolios });
           }
         });
     }
-
   }
 
   savePortfolioToDB(updated) {
@@ -315,31 +259,46 @@ export class App extends Component {
   }
 
   showTickerInfo(ticker) {
-    console.log(ticker);
-    this.setState({ infoPage: 'visible', selectedCompany: this.state.dividendData[ticker] });
+    this.setState({ mainPage: 'none', infoPage: '', portfolioComparison: 'none', selectedCompany: this.state.dividendData[ticker] });
   }
 
   closeInfoPage() {
-    this.setState({ infoPage: 'hidden', selectedCompany: null });
+    this.setState({ mainPage: '', infoPage: 'none', portfolioComparison: 'none', selectedCompany: null });
+  }
+
+  showComparison() {
+    this.setState({ mainPage: 'none', infoPage: 'none', portfolioComparison: '', selectedCompany: null });
+  }
+
+  closeComparison() {
+    this.setState({ mainPage: '', infoPage: 'none', portfolioComparison: 'none', selectedCompany: null })
   }
 
   render() {
+    console.log(this.state);
     return (
       < div className="App" >
         <header className="App-header">
           <Header />
-          <NavBar addTicker={this.addTicker.bind(this)} />
+          <NavBar addTicker={this.addTicker.bind(this)} comparison={this.showComparison.bind(this)} />
           <div className='mainSection'>
             <div className='mainList'>
               <Portfolios createPortfolio={this.createPortfolio.bind(this)} allPortfolios={this.state.portfolios} selectPortfolio={this.selectPortfolio.bind(this)} selectedPortfolio={this.state.currentportfolio.name} deletePortfolio={this.deletePortfolio.bind(this)} />
               <MainTickerList onChange={this.currentportfolio} tickers={this.state.currentportfolio.tickers} deleteTicker={this.deleteTicker.bind(this)} addShares={this.addShares.bind(this)} showTickerInfo={this.showTickerInfo.bind(this)} />
             </div>
-            <div className='tickerInfoSection' style={{ visibility: this.state.infoPage }}>
+            <div className='tickerInfoSection' style={{ display: this.state.infoPage }} >
               <TickerInfoPage closeInfoPage={this.closeInfoPage.bind(this)} selectedCompany={this.state.selectedCompany} />
             </div>
-            <Calender currentportfolio={this.state.currentportfolio} setMonthStack={this.setMonthStack.bind(this)} />
+            <div id='portfolioComparison' style={{ display: this.state.portfolioComparison }}>
+              <PortfolioComparison selectedCompany={this.state.selectedCompany} closeComparison={this.closeComparison.bind(this)} portfolio={this.state.currentportfolio} state={this.state.portfolioComparison} />
+            </div>
+            <div style={{ display: this.state.mainPage }}>
+              <Calender currentportfolio={this.state.currentportfolio} setMonthStack={this.setMonthStack.bind(this)} />
+            </div>
           </div>
-          <ChartSection monthStackData={this.state.monthStack} allData={this.state.dividendData} />
+          <div style={{ display: this.state.mainPage }}>
+            <ChartSection monthStackData={this.state.monthStack} allData={this.state.dividendData} portfolio={this.state.currentportfolio} />
+          </div>
         </header>
       </div >
     )

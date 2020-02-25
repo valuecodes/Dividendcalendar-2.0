@@ -12,61 +12,136 @@ export class PriceChart extends Component {
             dividendYield: false,
             chartType: "Dividend Yield",
             chartLabel: "Stock Price",
-            timeFrame: 5
+            timeFrame: 5,
+            tooltip: 'dividend'
         };
     }
     static getDerivedStateFromProps(props, state) {
         if (JSON.stringify(props.selectedCompany) !== '[]') {
-            console.log(props.selectedCompany);
+
             let label = [];
             let wData = [];
             let dData = [];
             let pStyle = [];
-            let quarterDivs = {};
+            let yearlyDivs = {};
             let divYield = [];
-            // let div
+            let iData = [];
+            let iStyle = [];
+            let iColor = [];
+            let dColor = [];
 
-            let timeFrame = 2020 - state.timeFrame;
+            let timeFrame = 2021 - state.timeFrame;
+            let divData = [...props.selectedCompany.dividendData];
+            let insiderData = [...props.selectedCompany.insiderData];
+            let type = props.selectedCompany.tickerData.dividendType;
+            let divType;
+            console.log(type);
+            if (type === 'Annual') {
+                divType = 'annual'
+            } else if (type === 'Semi-Annual') {
+                divType = 'semi'
+            } else {
+                divType = 'quarter'
+            }
 
             props.selectedCompany.weeklyData.forEach(element => {
                 if (element.year >= timeFrame) {
-
                     label.unshift(element.year + ' Q' + element.quarter);
                     wData.unshift(element.close);
                     dData.unshift((element.dividend));
 
-                    if (element.dividend !== 0) {
-                        // console.log(element.dividend, element.year, element.quarter);
-                        pStyle.unshift('3');
+                    if (divType === 'quarter') {
                         let yearQ = element.year + '/' + element.quarter;
-                        if (quarterDivs[yearQ] !== undefined) {
-                            quarterDivs[yearQ] += element.dividend;
-                        } else {
-                            quarterDivs[yearQ] = element.dividend;
+                        if (yearlyDivs[yearQ] === undefined && divData.length > 4) {
+                            let total = 0;
+                            for (var x = 0; x < 4; x++) {
+                                total += divData[x].dividend;
+                            }
+                            if (divData[0].year === element.year) {
+                                yearlyDivs[yearQ] = total;
+                                divData.shift();
+                            } else if (element.year === 2020) {
+                                yearlyDivs[yearQ] = total;
+                            } else {
+                                yearlyDivs[yearQ] = 0;
+                            }
                         }
+                    } else if (divType === 'annual') {
+                        let yearD = element.year;
+                        console.log(yearD);
+                        if (yearlyDivs[yearD] === undefined && divData.length > 1) {
+                            let total = 0;
+                            // for (var z = 0; z < 1; z++) {
+                            total += divData[0].dividend;
+                            if (divData[1].year === yearD) {
+                                total += divData[1].dividend;
+                                yearlyDivs[element.year] = total;
+                            }
+                            // }
+                            if (divData[0].year === yearD) {
+                                console.log(divData);
+                                yearlyDivs[element.year] = total;
+                                divData.shift();
+                            } else if (element.year === 2020) {
+                                yearlyDivs[yearD] = total;
+                            }
+                        }
+                    } else if (divType === 'semi') {
+                        let yearD = element.year;
+                        if (yearD === 2020) {
+                            yearlyDivs[element.year] = divData[0].dividend + divData[1].dividend;
+                        } else {
+                            if (yearlyDivs[yearD] === undefined && divData.length > 1) {
+                                if (divData[0].year === yearD && divData[1].year === yearD) {
+                                    yearlyDivs[element.year] = divData[0].dividend + divData[1].dividend;
+                                    divData.shift();
+                                    divData.shift();
+                                } else if (divData[0].year === yearD) {
+                                    yearlyDivs[element.year] = divData[0].dividend;
+                                    divData.shift();
+                                }
+                            }
+                        }
+                    }
+
+                    let insider = insiderData.filter(inElement => inElement.year === element.year && inElement.month === element.month);
+                    insiderData.splice(0, insider.length);
+
+                    iData.unshift(insider)
+
+                    if (insider.length !== 0) {
+                        iStyle.unshift('7');
+                        if (insider[0].type === 'Buy') {
+                            iColor.unshift('rgb(56, 181, 79)')
+                        } else {
+                            iColor.unshift('rgb(181, 59, 54)')
+                        }
+                    } else {
+                        iStyle.unshift('0');
+                        iColor.unshift('black')
+                    }
+                    if (element.dividend !== 0) {
+                        pStyle.unshift('3');
                     } else {
                         pStyle.unshift('0');
                     }
+                    dColor.push('rgba(40, 49, 54, 0.7)');
                 }
             });
-            let keys = Object.keys(quarterDivs);
-            let trailing = {};
-            for (var s = 0; s < keys.length; s++) {
-                trailing[keys[s]] = 0;
-                for (var d = s; d < s + 4; d++) {
-                    trailing[keys[s]] += quarterDivs[keys[d]];
-                }
-                if (keys.length - s < 4) {
-                    trailing[keys[s]] = trailing[keys[s - 1]]
-                }
-            }
-
             props.selectedCompany.weeklyData.forEach(element => {
-                let sum = 0;
                 if (element.year >= timeFrame) {
-                    divYield.unshift((trailing[element.year + '/' + element.quarter] / element.close) * 100);
+                    if (divType === 'quarter') {
+                        divYield.unshift((yearlyDivs[element.year + '/' + element.quarter] / element.close) * 100);
+                    } else if (divType === 'annual') {
+                        divYield.unshift((yearlyDivs[element.year] / element.close) * 100);
+                    } else if (divType === 'semi') {
+                        divYield.unshift((yearlyDivs[element.year] / element.close) * 100);
+                    }
                 }
             })
+
+            let style = state.tooltip === 'dividend' ? pStyle : iStyle;
+            let color = state.tooltip === 'dividend' ? dColor : iColor;
 
             let data = {
                 labels: label,
@@ -78,14 +153,28 @@ export class PriceChart extends Component {
                             'rgba(71, 189, 138, 0.6)',
                         ],
                         borderColor: 'rgba(40, 49, 54, 1)',
+                        pointBackgroundColor: color,
                         borderWidth: 1,
-                        pointRadius: pStyle,
-                        pointHitRadius: pStyle,
+                        pointRadius: style,
+                        pointHitRadius: style,
                         hidden: state.dividendYield,
                     },
                     {
                         data: divYield,
                         label: 'Dividend Yield',
+                        backgroundColor: [
+                            'rgba(71, 89, 138, 0.8)',
+                        ],
+                        // borderColor: 'rgba(221, 89, 138, 0.5)',
+                        borderWidth: 1,
+                        pointRadius: 0,
+                        pointHitRadius: 10,
+                        hidden: !state.dividendYield,
+                    }
+                    ,
+                    {
+                        data: iData,
+                        label: 'InsiderData',
                         backgroundColor: [
                             'rgba(71, 89, 138, 0.8)',
                         ],
@@ -121,42 +210,47 @@ export class PriceChart extends Component {
                     callbacks: {
                         label: function (tooltipItem, data) {
                             let divLabel;
-                            let count = 0;
                             if (!state.dividendYield) {
-                                for (var i = 0; i < 52; i++) {
-                                    count++;
-                                    if (dData[tooltipItem.index + i] !== 0) {
-                                        divLabel = dData[tooltipItem.index + i];
-                                        break
+                                if (state.tooltip === 'dividend') {
+                                    for (var a = 0; a < 52; a++) {
+                                        if (dData[tooltipItem.index + a] !== 0) {
+                                            divLabel = dData[tooltipItem.index + a];
+                                            break
+                                        }
                                     }
+                                    return "Dividend " + divLabel
+                                } else {
+                                    return data.datasets[2].data[tooltipItem.index][0].type;
                                 }
-                                return "Dividend " + divLabel
                             } else {
                                 return Number(tooltipItem.value).toFixed(1) + '%';
                             }
-
+                        },
+                        footer: function (tooltipItem, data) {
+                            if (state.tooltip === 'insider' && !state.dividendYield) {
+                                let total = [];
+                                if (data.datasets[2].data[tooltipItem[0].index].length > 1) {
+                                    for (var i = 0; i < data.datasets[2].data[tooltipItem[0].index].length; i++) {
+                                        total.push(
+                                            'Title: ' + data.datasets[2].data[tooltipItem[0].index][i].title +
+                                            '   \tType: ' + data.datasets[2].data[tooltipItem[0].index][i].type +
+                                            '   \tTotal: ' + data.datasets[2].data[tooltipItem[0].index][i].total + '$'
+                                        )
+                                    }
+                                } else {
+                                    total.push(
+                                        'Name: ' + data.datasets[2].data[tooltipItem[0].index][0].name,
+                                        'Title: ' + data.datasets[2].data[tooltipItem[0].index][0].title,
+                                        'Count: ' + data.datasets[2].data[tooltipItem[0].index][0].count,
+                                        'Price: ' + data.datasets[2].data[tooltipItem[0].index][0].shares,
+                                        'Total: ' + data.datasets[2].data[tooltipItem[0].index][0].total + '$'
+                                    )
+                                }
+                                return total;
+                            }
                         }
                     }
                 },
-                // plugins: {
-                //     datalabels: {
-                //         display: true,
-                //         color: 'black',
-                //         align: 'end',
-                //         font: {
-                //             size: 10,
-                //         },
-                //         formatter: (value, ctx, index) => {
-                //             console.log(ctx.dataset.pointRadius, value);
-                //             // if (state.payoutRatio) {
-                //             //     return value + '%';
-                //             // } else {
-                //             //     return value;
-                //             // }
-
-                //         }
-                //     },
-                // },
                 hover: {
                     enabled: false,
                     mode: null
@@ -201,7 +295,14 @@ export class PriceChart extends Component {
         if (this.state.timeFrame === position) {
             return "rgba(156, 156, 56, 0.753)";
         }
+        if (this.state.tooltip === position) {
+            return "rgba(156, 156, 56, 0.753)";
+        }
         return "";
+    }
+
+    toggleTooltip(type) {
+        this.setState({ tooltip: type });
     }
 
     render() {
@@ -209,6 +310,10 @@ export class PriceChart extends Component {
             <div id='priceChart'>
                 <div id="priceChartOptions">
                     <h2 id="priceChartLabel">{this.state.chartLabel}</h2>
+                    <div id='priceSwitch'>
+                        <button style={{ background: this.myColor('dividend') }} id='dividendsTool' onClick={this.toggleTooltip.bind(this, 'dividend')}>Dividends</button>
+                        <button style={{ background: this.myColor('insider') }} id='insidersTool' onClick={this.toggleTooltip.bind(this, 'insider')}>Insiders</button>
+                    </div>
                     <button id='priceChange' onClick={this.dividendYield.bind(this)}>{this.state.chartType}</button>
                     <button style={{ background: this.myColor(1) }} onClick={this.changeTimeFrame.bind(this, 1)}>1 Year</button>
                     <button style={{ background: this.myColor(3) }} onClick={this.changeTimeFrame.bind(this, 3)}>3 Year</button>
@@ -219,7 +324,7 @@ export class PriceChart extends Component {
                 <Line
                     data={this.state.chartData}
                     width={50}
-                    height={18}
+                    height={17}
                     options={this.state.chartOptions}
                     datasetKeyProvider={this.datasetKeyProvider}
                 />

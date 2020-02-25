@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
-import { SetTarget } from './setTarget';
+import { PortFolioStats } from './portfolioStats';
 import { MainChart } from './mainChart';
+import { StatChart } from './statChart';
 
 export class ChartSection extends Component {
 
@@ -8,7 +9,10 @@ export class ChartSection extends Component {
         super();
         this.state = {
             monthSum: [],
-            allData: null
+            totalSum: 0,
+            statType: 'calender',
+            calender: 'block',
+            stats: 'none',
         };
     }
 
@@ -29,31 +33,64 @@ export class ChartSection extends Component {
     }
 
     static getDerivedStateFromProps(props, state) {
-        // console.log(JSON.stringify(props.allData));
-        // console.log(Object(props.allData).length === 0)
 
         if (Object(props.monthStackData).length !== 0) {
             let dividends = props.monthStackData;
             let monthSum = state.monthSum;
+            let totalSum = 0;
             monthSum.forEach(month => month.sumOfDiv = 0);
             for (var i = 0; i < 12; i++) {
                 for (var a = 0; a < dividends[i].data.length; a++) {
                     monthSum[i].sumOfDiv += dividends[i].data[a].sum
+                    totalSum += dividends[i].data[a].sum;
                 }
             }
             return {
                 monthSum: monthSum,
-                allData: props.allData
+                totalSum: totalSum
             }
         }
         return null;
     }
 
+    changeStat(type) {
+        console.log(type);
+        let calender = 'none';
+        let stats = 'none';
+        if (type === 'calender') {
+            calender = 'block';
+        }
+        if (type === 'stats') {
+            stats = 'block';
+        }
+        this.setState({ calender: calender, stats: stats, statType: type });
+    }
+
+    setColor(position) {
+        if (this.state.statType === position) {
+            return " rgba(76, 116, 175,0.7)";
+        }
+        return "";
+    }
+
     render() {
+        console.log(this.props);
+        let state = this.state.calender;
         return (
             <div className='chartSection'>
-                <SetTarget />
-                {<MainChart createChart={this.state.monthSum} />}
+                <div className='chartStatistics'>
+                    <div id='selectStat'>
+                        <button className='statsButton' onClick={this.changeStat.bind(this, 'calender')} style={{ background: this.setColor("calender") }}>Calender</button>
+                        <button className='statsButton' onClick={this.changeStat.bind(this, 'stats')} style={{ background: this.setColor("stats") }}>Statistics</button>
+                    </div>
+                    <PortFolioStats totalSum={this.state.totalSum} />
+                </div>
+                <div id='divChart' style={{ display: this.state.calender }}>
+                    <MainChart createChart={this.state.monthSum} />
+                </div>
+                <div id='portfolioStats' style={{ display: this.state.stats }}>
+                    <StatChart portfolio={this.props.portfolio} statType={this.state.statType} />
+                </div>
             </div>
         )
     }

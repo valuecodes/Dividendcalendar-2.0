@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Line, Bar } from 'react-chartjs-2';
+import { Line } from 'react-chartjs-2';
 import 'chartjs-plugin-datalabels';
 
 
@@ -13,7 +13,8 @@ export class ForecastChart extends Component {
             dividendYield: false,
             chartType: "Dividend Yield",
             chartLabel: "Stock Price",
-            timeFrame: 5
+            timeFrame: 5,
+            current: 'dividend'
         };
     }
     static getDerivedStateFromProps(props, state) {
@@ -23,10 +24,20 @@ export class ForecastChart extends Component {
             let fData = [];
             let yearlyData = {};
             let backGround = [];
-            let fDataBackGround = [];
+            // let fDataBackGround = [];
             let radius = [];
 
-            let d2020 = 0;
+            // let d2020 = 0;
+
+            let type = props.selectedCompany.tickerData.dividendType;
+            let divType = 1;
+            if (type === 'Quarterly') {
+                divType = 4;
+            } else if (type === 'Annual') {
+                divType = 1;
+            } else if (type === 'Semi-Annual') {
+                divType = 2;
+            }
 
             props.selectedCompany.weeklyData.forEach(element => {
                 if (element.year >= 2010) {
@@ -43,27 +54,24 @@ export class ForecastChart extends Component {
                         backGround.push('rgba(71, 189, 138, 0.6)');
                         fData.push(0);
                         radius.push(3);
-                        let fDataBackGround = ['rgba(171, 159, 138, 1)'];
+                        // fDataBackGround = ['rgba(171, 159, 138, 1)'];
                         if (element.year === 2020) {
-                            d2020++;
+                            // d2020++;
                         }
                     }
                 }
             });
             let growth = getGrowthRate(yearlyData);
-            console.log(growth);
-            console.log(dData[dData.length - 4]);
             for (var i = 2020; i <= 2030; i++) {
-                for (var j = 1; j <= 4; j++) {
+                for (var j = 1; j <= divType; j++) {
                     label.push(i);
-                    dData.push((dData[dData.length - 4] * growth).toFixed(2));
+                    dData.push((dData[dData.length - divType] * growth).toFixed(2));
                     backGround.push('rgba(171, 89, 138, 0.6)');
-                    fData.push((dData[dData.length - 4] * growth).toFixed(2));
+                    fData.push((dData[dData.length - divType] * growth).toFixed(2));
                     radius.push(4);
-                    let fDataBackGround = ['rgba(171, 89, 138, 0.9)'];
+                    // fDataBackGround = ['rgba(171, 89, 138, 0.9)'];
                 }
             }
-            console.log(label);
 
             let data = {
                 labels: label,
@@ -92,9 +100,6 @@ export class ForecastChart extends Component {
             }
 
             let options = {
-                legend: {
-                    // display: false
-                },
                 plugins: {
                     datalabels: {
                         display: false,
@@ -138,14 +143,29 @@ export class ForecastChart extends Component {
     }
     datasetKeyProvider() { return Math.random(); }
 
+    changeChart(type) {
+        this.setState({ current: type });
+    }
+
+    myColor(value) {
+        if (this.state.current === value) {
+            return "rgba(156, 156, 56, 0.753)";
+        }
+        return "";
+    }
+
     render() {
         return (
             <div id='forecastChart'>
-                <h3>Forecast</h3>
+                <div id='forecastOptions'>
+                    <h3>Forecast</h3>
+                    <button style={{ background: this.myColor('dividend') }} onClick={this.changeChart.bind(this, 'dividend')}>Dividend</button>
+                    <button style={{ background: this.myColor('intrinsic') }} onClick={this.changeChart.bind(this, 'intrinsic')} >Intrinsic Value</button>
+                </div>
                 <Line
                     data={this.state.chartData}
                     width={50}
-                    height={18}
+                    height={23}
                     options={this.state.chartOptions}
                     datasetKeyProvider={this.datasetKeyProvider}
                 />
@@ -162,7 +182,6 @@ let getGrowthRate = (annual) => {
     let sum = 0;
     let growth = [];
     for (var i = 0; i < len; i++) {
-        console.log(annual[years[i + 1]] / annual[years[i]], years[i]);
         sum += annual[years[i + 1]] / annual[years[i]];
         growth.push(annual[years[i + 1]] / annual[years[i]]);
     }

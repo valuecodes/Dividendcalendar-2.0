@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import { element } from 'prop-types';
 import { Bar } from 'react-chartjs-2';
 import 'chartjs-plugin-datalabels';
 
@@ -17,59 +16,63 @@ export class Statistics extends Component {
             dividend: "",
             dividendYield: "",
             pe: "",
-            eps: "",
             epsGrowthRate: "",
             dividendGrowthRate: "",
             priceGrowth: "",
-            growthTime: ""
+            growthTime: 5,
+            cratio: "",
+            margin: ""
         };
     }
 
     static getDerivedStateFromProps(props, state) {
-        if (JSON.stringify(props.selectedCompany) !== '[]') {
+
+        if (JSON.stringify(props.selectedCompany) !== '[]' && props.selectedCompany.qFinancials.length > 1) {
             let price = props.selectedCompany.weeklyData[0].close;
             let eps = 0;
-            let len = props.selectedCompany.earnings.length - 1;
-            console.log(len);
+            let len = props.selectedCompany.qFinancials.length - 1;
             for (var i = len; i > len - 4; i--) {
-                eps += Number(props.selectedCompany.earnings[i].eps)
+                eps += Number(props.selectedCompany.qFinancials[i].eps)
             }
             let annualD = {};
             let annualE = {};
             let annualP = {};
-
-            for (var a = 2014; a < 2020; a++) {
-                annualD[a] = 0;
-                annualE[a] = 0;
-                props.selectedCompany.dividend.forEach(element => {
-                    if (element.year === a) {
-                        annualD[a] += element.dividend
-                    }
-                })
-                props.selectedCompany.earnings.forEach(element => {
-                    if (element.year === a) {
-                        annualE[a] += Number(element.eps);
-                    }
-                })
-                annualP[a] = props.selectedCompany.weeklyData.filter(element => element.year === a && element.month === 1)[0].close;
+            let growthTime = state.growthTime;
+            let max = props.selectedCompany.qFinancials[0].year;
+            let min = props.selectedCompany.qFinancials[props.selectedCompany.qFinancials.length - 1].year;
+            if (growthTime > max - min) {
+                growthTime = max - min
             }
-            annualP[2020] = price;
-            let dividend = annualD[2019];
+
+            for (var a = max - growthTime; a <= max; a++) {
+                let aYear = a;
+                annualD[aYear] = 0;
+                annualE[aYear] = 0;
+                props.selectedCompany.dividendData.forEach(element => {
+                    if (element.year === aYear) {
+                        annualD[aYear] += element.dividend
+                    }
+                })
+                props.selectedCompany.qFinancials.forEach(element => {
+                    if (element.year === aYear && element.quarter === 4) {
+                        annualE[aYear] += Number(element.eps);
+                    }
+                })
+                annualP[aYear] = props.selectedCompany.weeklyData.filter(element => element.year === aYear && element.month === 1)[0].close;
+            }
+            annualP[max] = price;
+            let dividend = annualD[max];
             eps = Number(eps.toFixed(2));
             dividend = Number(dividend.toFixed(2));
-
             let epsGrowthRate = getGrowthRate(annualE);
             let dividendGrowthRate = getGrowthRate(annualD);
             let annualPriceGrowth = getGrowthRate(annualP);
             let dividendYield = Number(((dividend / price) * 100).toFixed(2));
             let pe = Number((price / eps).toFixed(2));
-            let growthTime = Object.keys(annualE).length;
-
             let label = ['Earnings', 'Dividend', 'Stock price']
             let rates = [epsGrowthRate, dividendGrowthRate, annualPriceGrowth];
             let colors = [];
             rates.forEach(element => {
-                console.log(element);
                 if (element >= 0) {
                     colors.push('rgba(71, 189, 138, 0.5)');
                 } else {
@@ -87,9 +90,6 @@ export class Statistics extends Component {
                         borderColor: [
                         ],
                         borderWidth: 1,
-                        // pointRadius: pStyle,
-                        // pointHitRadius: pStyle,
-                        // hidden: state.dividendYield,
                     }
                 ]
             }
@@ -116,12 +116,9 @@ export class Statistics extends Component {
                     },
                 },
                 tooltips: {
-                    // enabled: !state.dividendYield,
                     cornerRadius: 10,
                     callbacks: {
                         label: function (tooltipItem, data) {
-                            let divLabel;
-                            let count = 0;
                             return Number(tooltipItem.value).toFixed(1) + '%';
                         }
                     }
@@ -138,13 +135,12 @@ export class Statistics extends Component {
                     }],
                 }
             }
-
             return {
                 chartData: data,
                 chartOptions: options,
                 selectedCompany: props.selectedCompany,
-                sector: props.selectedCompany.sector,
-                country: props.selectedCompany.country,
+                sector: props.selectedCompany.tickerData.sector,
+                country: props.selectedCompany.tickerData.country,
                 eps: eps,
                 price: price,
                 dividend: dividend,
@@ -153,22 +149,33 @@ export class Statistics extends Component {
                 epsGrowthRate: epsGrowthRate,
                 dividendGrowthRate: dividendGrowthRate,
                 priceGrowth: annualPriceGrowth,
-                growthTime: growthTime
+                growthTime: growthTime,
+                cratio: props.selectedCompany.qFinancials[1].cratio,
+                margin: props.selectedCompany.qFinancials[1].netmargin
             }
         }
         return false
     }
 
+    changeGrowthYears(value) {
+        this.setState({ growthTime: value });
+    }
+
+    myColor(value) {
+        if (this.state.growthTime === value) {
+            return "rgba(156, 156, 56, 0.753)";
+        }
+        return "";
+    }
 
     render() {
-        console.log(this.state);
         return (
             <div id='statistics'>
                 <div id='stats'>
-                    <p>Sector</p>
-                    <h3>{this.state.sector}</h3>
-                    <p>Country</p>
-                    <h3>{this.state.country}</h3>
+                    <p>Current ratio</p>
+                    <h3>{this.state.cratio}</h3>
+                    <p>Profit Margin</p>
+                    <h3>{this.state.margin}%</h3>
                     <p>Share Price</p>
                     <h3>{this.state.price}</h3>
                     <p>Eps</p>
@@ -183,7 +190,12 @@ export class Statistics extends Component {
                     <h3>{this.state.pe}</h3>
                 </div>
                 <div id="growthGraphs">
-                    <h2 id='growthRate'>Annual {this.state.growthTime} year growth rates</h2>
+                    <div id='growthOptions'>
+                        <h2 id='growthRate'>Annual growth</h2>
+                        <button style={{ background: this.myColor(3) }} onClick={this.changeGrowthYears.bind(this, 3)}>3 Year</button>
+                        <button style={{ background: this.myColor(5) }} onClick={this.changeGrowthYears.bind(this, 5)}>5 Year</button>
+                        <button style={{ background: this.myColor(10) }} onClick={this.changeGrowthYears.bind(this, 10)}>10 Year</button>
+                    </div>
                     <Bar
                         data={this.state.chartData}
                         width={50}

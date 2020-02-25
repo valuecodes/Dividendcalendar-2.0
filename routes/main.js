@@ -104,28 +104,73 @@ app.post('/getDividendData', function (req, res) {
         tickers += "'" + req.body.data[i] + "',"
     }
     tickers = tickers.slice(0, -1);
-    console.log(tickers);
+
 
     req.getConnection(function (error, con) {
-        let sql = "SELECT * FROM tickers JOIN dividends ON tickers.id =  dividends.ticker_id WHERE ticker IN (" + tickers + ")"
-        con.query(sql, function (err, result, fields) {
+        let array = tickers.split(',');
+        let values = [];
+        for (var i = 0; i < array.length; i++) {
+            values.push(array[i].replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/gi, ''));
+        }
+        let sql = "SELECT * FROM tickers WHERE ticker in (" + array + ")";
+        con.query(sql, function (err, fresult, fields) {
             if (err) throw error;
-            let dividends = result;
-            let sql = "SELECT * FROM tickers JOIN earnings ON tickers.id =  earnings.ticker_id WHERE ticker IN (" + tickers + ")"
-            con.query(sql, function (err, result1, fields) {
-                let earnings = result1;
-                let sql = "SELECT * FROM tickers JOIN weeklydata ON tickers.id =  weeklydata.ticker_id where ticker IN (" + tickers + ")"
-                con.query(sql, function (err, result2, fields) {
-                    let weeklydata = result2;
-                    res.json({
-                        dividends: dividends,
-                        earnings: earnings,
-                        weeklydata: weeklydata,
-                        message: 'Dividend and earnings data set'
-                    });
+            // console.log(fresult);
+            let tickerData = fresult;
+            let fkey = fresult.map(element => element.id);
+            let sql = "SELECT * FROM dividends where ticker_id in (" + fkey + ")";
+            con.query(sql, function (err, result, fields) {
+                if (err) throw error;
+                let dividends = result;
+                let sql = "SELECT * FROM qfinancials where ticker_id in (" + fkey + ")";
+                con.query(sql, function (err, result1, fields) {
+                    let qfinancials = result1;
+                    let sql = "SELECT * FROM yeardata where ticker_id in (" + fkey + ")";
+                    con.query(sql, function (err, result3, fields) {
+                        // console.log(result3);
+                        let yeardata = result3;
+                        let sql = "SELECT * FROM insider where ticker_id in (" + fkey + ")";
+                        con.query(sql, function (err, result4, fields) {
+                            let insider = result4;
+
+                            let sql = "SELECT * FROM weeklydata where ticker_id in (" + fkey + ")";
+                            con.query(sql, function (err, result5, fields) {
+                                let wdata = result5;
+
+                                let dataArray = [];
+                                for (var a = 0; a < fkey.length; a++) {
+                                    let weData = wdata.filter(element => element.ticker_id == fkey[a]);
+                                    let yeData = yeardata.filter(element => element.ticker_id == fkey[a]);
+                                    let diData = dividends.filter(element => element.ticker_id == fkey[a]);
+                                    let qfData = qfinancials.filter(element => element.ticker_id == fkey[a]);
+                                    let inData = insider.filter(element => element.ticker_id == fkey[a]);
+                                    dataArray.push([fresult[a], weData, yeData, diData, qfData, inData]);
+                                }
+                                console.log(dataArray);
+
+                                res.json({
+                                    data: dataArray,
+                                    message: 'All data received'
+                                });
+
+                            })
+
+                        })
+
+                    })
+                    // let sql = "SELECT * FROM tickers JOIN weeklydata ON tickers.id =  weeklydata.ticker_id where ticker IN (" + tickers + ")"
+                    // con.query(sql, function (err, result2, fields) {
+                    //     let weeklydata = result2;
+                    //     res.json({
+                    //         dividends: dividends,
+                    //         qfinancials: qfinancials,
+                    //         weeklydata: weeklydata,
+                    //         message: 'Dividend and earnings data set'
+                    //     });
+                    // })
                 })
-            })
-        });
+            });
+        })
     });
 });
 
