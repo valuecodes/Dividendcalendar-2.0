@@ -29,10 +29,7 @@ export class PortfolioComparison extends Component {
     static getDerivedStateFromProps(props, state) {
         if (JSON.stringify(props.portfolio) !== '[]' && props.state !== 'none') {
             let data = props.portfolio.dividendData;
-            console.log(data);
-            for (var i = 0; i < data.length; i++) {
-                console.log(data[i]);
-            }
+
             let keys = Object.keys(data);
 
             let employeesOb = {};
@@ -423,7 +420,6 @@ export class PortfolioComparison extends Component {
     }
 
     render() {
-        console.log(this.state)
         return (
             <div id='comparePort'>
                 <button id="closeComparison" onClick={this.props.closeComparison}>Back</button>

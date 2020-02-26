@@ -15,7 +15,6 @@ export class TickerInfoPage extends Component {
     static getDerivedStateFromProps(props, state) {
 
         if (props.selectedCompany !== null) {
-            console.log(props);
             return {
                 selectedCompany: props.selectedCompany,
                 header: props.selectedCompany.tickerData

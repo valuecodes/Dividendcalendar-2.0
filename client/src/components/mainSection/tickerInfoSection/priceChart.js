@@ -35,7 +35,7 @@ export class PriceChart extends Component {
             let insiderData = [...props.selectedCompany.insiderData];
             let type = props.selectedCompany.tickerData.dividendType;
             let divType;
-            console.log(type);
+
             if (type === 'Annual') {
                 divType = 'annual'
             } else if (type === 'Semi-Annual') {
@@ -68,18 +68,16 @@ export class PriceChart extends Component {
                         }
                     } else if (divType === 'annual') {
                         let yearD = element.year;
-                        console.log(yearD);
                         if (yearlyDivs[yearD] === undefined && divData.length > 1) {
                             let total = 0;
-                            // for (var z = 0; z < 1; z++) {
+
                             total += divData[0].dividend;
                             if (divData[1].year === yearD) {
                                 total += divData[1].dividend;
                                 yearlyDivs[element.year] = total;
                             }
-                            // }
+
                             if (divData[0].year === yearD) {
-                                console.log(divData);
                                 yearlyDivs[element.year] = total;
                                 divData.shift();
                             } else if (element.year === 2020) {

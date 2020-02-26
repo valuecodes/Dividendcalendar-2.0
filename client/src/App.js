@@ -46,7 +46,6 @@ export class App extends Component {
         if (list.length === 0) {
           this.createPortfolio('My portfolio')
         } else {
-          // console.log(list[0].name);
           this.setState({ portfolios: list });
           // this.selectPortfolio(list[0].name)
 
@@ -275,7 +274,6 @@ export class App extends Component {
   }
 
   render() {
-    console.log(this.state);
     return (
       < div className="App" >
         <header className="App-header">

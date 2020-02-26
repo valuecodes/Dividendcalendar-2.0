@@ -22,7 +22,6 @@ export class EarningsChart extends Component {
     }
     static getDerivedStateFromProps(props, state) {
         if (JSON.stringify(props.selectedCompany) !== '[]') {
-            console.log(props);
             let label = [];
             let edata = [];
             let ddata = [];
@@ -40,7 +39,7 @@ export class EarningsChart extends Component {
             if (state.peRatio === false && state.earningsYield === false) {
                 if (state.timeFrame === 'Year' || state.payoutRatio) {
                     for (var x = min; x <= max; x++) {
-                        let xYear=x
+                        let xYear = x
                         let yearlyE = props.selectedCompany.qFinancials.filter(element => element.year === xYear);
                         let sumE = 0;
                         if (state.current === true) {

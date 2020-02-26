@@ -20,7 +20,6 @@ export class StatChart extends Component {
 
     static getDerivedStateFromProps(props, state) {
         if (JSON.stringify(props.portfolio) !== '[]' && props.statType === 'stats') {
-            console.log(props.portfolio);
             let tickers = props.portfolio.tickers;
             let divData = props.portfolio.dividendData;
             let stake = [];
@@ -360,7 +359,6 @@ let randomColor = () => {
         'rgba(208,243,135,1)',
         'rgba(172,209, 93,1)',
     ]
-    // console.log(Math.floor(Math.random() * 20));
     let num = Math.floor(Math.random() * 20);
     return colors[num];
 }

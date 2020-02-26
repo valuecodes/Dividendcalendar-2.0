@@ -54,7 +54,6 @@ export class ChartSection extends Component {
     }
 
     changeStat(type) {
-        console.log(type);
         let calender = 'none';
         let stats = 'none';
         if (type === 'calender') {
@@ -74,7 +73,6 @@ export class ChartSection extends Component {
     }
 
     render() {
-        console.log(this.props);
         let state = this.state.calender;
         return (
             <div className='chartSection'>
