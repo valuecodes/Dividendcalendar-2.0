@@ -27,19 +27,19 @@ export class Statistics extends Component {
 
     static getDerivedStateFromProps(props, state) {
 
-        if (JSON.stringify(props.selectedCompany) !== '[]' && props.selectedCompany.qFinancials.length > 1) {
+        if (JSON.stringify(props.selectedCompany) !== '[]' && props.selectedCompany.yearData.length > 1) {
             let price = props.selectedCompany.weeklyData[0].close;
             let eps = 0;
-            let len = props.selectedCompany.qFinancials.length - 1;
+            let len = props.selectedCompany.yearData.length - 1;
             for (var i = len; i > len - 4; i--) {
-                eps += Number(props.selectedCompany.qFinancials[i].eps)
+                eps += Number(props.selectedCompany.yearData[len].EPSEarningsPerShare)
             }
             let annualD = {};
             let annualE = {};
             let annualP = {};
             let growthTime = state.growthTime;
-            let max = props.selectedCompany.qFinancials[0].year;
-            let min = props.selectedCompany.qFinancials[props.selectedCompany.qFinancials.length - 1].year;
+            let max = props.selectedCompany.yearData[0].year;
+            let min = props.selectedCompany.yearData[props.selectedCompany.yearData.length - 1].year;
             if (growthTime > max - min) {
                 growthTime = max - min
             }
@@ -53,12 +53,14 @@ export class Statistics extends Component {
                         annualD[aYear] += element.dividend
                     }
                 })
-                props.selectedCompany.qFinancials.forEach(element => {
+                props.selectedCompany.yearData.forEach(element => {
                     if (element.year === aYear && element.quarter === 4) {
-                        annualE[aYear] += Number(element.eps);
+                        annualE[aYear] += Number(element.EPSEarningsPerShare);
                     }
                 })
-                annualP[aYear] = props.selectedCompany.weeklyData.filter(element => element.year === aYear && element.month === 1)[0].close;
+                if (props.selectedCompany.weeklyData.length > 1) {
+                    annualP[aYear] = props.selectedCompany.weeklyData[max - a].close;
+                }
             }
             annualP[max] = price;
             let dividend = annualD[max];
@@ -150,8 +152,8 @@ export class Statistics extends Component {
                 dividendGrowthRate: dividendGrowthRate,
                 priceGrowth: annualPriceGrowth,
                 growthTime: growthTime,
-                cratio: props.selectedCompany.qFinancials[1].cratio,
-                margin: props.selectedCompany.qFinancials[1].netmargin
+                cratio: props.selectedCompany.yearData[1].CurrentRatio,
+                margin: props.selectedCompany.yearData[1].NetProfitMargin
             }
         }
         return false

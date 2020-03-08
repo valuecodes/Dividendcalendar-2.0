@@ -33,20 +33,20 @@ export class EarningsChart extends Component {
             let dlabel = true;
             let country = props.selectedCompany.tickerData.country;
 
-            let max = props.selectedCompany.qFinancials[0].year;
-            let min = props.selectedCompany.qFinancials[props.selectedCompany.qFinancials.length - 1].year
+            let max = props.selectedCompany.yearData[0].year;
+            let min = props.selectedCompany.yearData[props.selectedCompany.yearData.length - 1].year
 
             if (state.peRatio === false && state.earningsYield === false) {
                 if (state.timeFrame === 'Year' || state.payoutRatio) {
                     for (var x = min; x <= max; x++) {
                         let xYear = x
-                        let yearlyE = props.selectedCompany.qFinancials.filter(element => element.year === xYear);
+                        let yearlyE = props.selectedCompany.yearData.filter(element => element.year === xYear);
                         let sumE = 0;
                         if (state.current === true) {
-                            aData.push(yearlyE[0].currentassets);
-                            lData.push(yearlyE[0].currentliabilities);
+                            aData.push(yearlyE[0].TotalCurrentAssets);
+                            lData.push(yearlyE[0].TotalCurrentLiabilities);
                         } else {
-                            yearlyE.forEach(element => sumE += element.eps);
+                            yearlyE.forEach(element => sumE += element.EPSEarningsPerShare);
                             let yearlyD = props.selectedCompany.dividendData.filter(element => element.year === xYear);
                             let sumD = 0;
                             yearlyD.forEach(element => (sumD += Number(element.dividend)));
@@ -55,40 +55,11 @@ export class EarningsChart extends Component {
                         }
                         label.push(xYear);
                     }
-                } else {
-                    if (state.current === true) {
-                        props.selectedCompany.qFinancials.forEach(element => {
-                            if (element.year >= min) {
-                                label.unshift(element.year + ' Q' + element.quarter);
-                                aData.unshift(Number(element.currentassets));
-                                lData.unshift(Number(element.currentliabilities));
-                            }
-                        });
-                    } else {
-                        props.selectedCompany.qFinancials.forEach(element => {
-                            if (element.year >= min) {
-                                label.unshift(element.year + ' Q' + element.quarter);
-                                edata.unshift(Number(element.eps));
-                            }
-                        });
-                        if (props.selectedCompany.tickerData.dividendType === 'Quarterly') {
-                            props.selectedCompany.dividendData.forEach(element => {
-                                if (element.year >= min) {
-                                    ddata.unshift(element.dividend);
-                                }
-                            });
-                        }
-                        if (state.earnings) {
-                            dlabel = false;
-                        }
-                    }
                 }
             } else {
                 let qEData = {};
-                props.selectedCompany.qFinancials.forEach(element => {
-                    if (element.year >= min) {
-                        qEData[element.year + '/' + element.quarter] = Number(element.eps);
-                    }
+                props.selectedCompany.yearData.forEach(element => {
+                    qEData[element.year] = Number(element.EPSEarningsPerShare);
                 });
 
                 let keys = Object.keys(qEData);
@@ -96,21 +67,21 @@ export class EarningsChart extends Component {
                 let trailing = {};
                 for (var s = 0; s < keys.length; s++) {
                     trailing[keys[s]] = 0;
-                    for (var d = s; d < s + 4; d++) {
+                    for (var d = s; d < s + 1; d++) {
                         trailing[keys[s]] += qEData[keys[d]];
                     }
-                    if (keys.length - s < 4) {
+                    if (keys.length - s < 1) {
                         trailing[keys[s]] = trailing[keys[s - 1]]
                     }
                 }
 
                 props.selectedCompany.weeklyData.forEach(element => {
                     if (element.year >= min && element.year <= max) {
-                        label.unshift(element.year + ' Q' + element.quarter);
+                        label.unshift(element.year);
                         if (state.earningsYield) {
-                            eYdata.unshift(((trailing[element.year + '/' + element.quarter] / element.close) * 100).toFixed(2));
+                            eYdata.unshift(((trailing[element.year] / element.close) * 100).toFixed(2));
                         } else {
-                            pedata.unshift((element.close / trailing[element.year + '/' + element.quarter]).toFixed(2));
+                            pedata.unshift((element.close / trailing[element.year]).toFixed(2));
                         }
                     }
                 });
@@ -312,14 +283,6 @@ export class EarningsChart extends Component {
         return false
     }
 
-    changeTimeFrame() {
-        if (this.state.timeFrame === 'Year') {
-            this.setState({ timeFrame: 'Quarter' })
-        } else {
-            this.setState({ timeFrame: 'Year' })
-        }
-    }
-
     changeType(type) {
         let payRatio = false;
         let peRatio = false;
@@ -359,7 +322,6 @@ export class EarningsChart extends Component {
                 <div id="earningsChartOptions">
                     <h2 id="earningsChartLabel">{this.state.chartLabel}</h2>
                     {/* <p></p> */}
-                    <button id="earningsTimeFrame" onClick={this.changeTimeFrame.bind(this)}>{this.state.timeFrame}</button>
                     <button style={{ background: this.setColor("Payout Ratio") }} onClick={this.changeType.bind(this, "Payout Ratio")}>Payout Ratio</button>
                     <button style={{ background: this.setColor("Earnings and Dividends") }} onClick={this.changeType.bind(this, "Earnings and Dividends")}>Earnings</button>
                     <button style={{ background: this.setColor("Historical PE-Ratio") }} onClick={this.changeType.bind(this, "Historical PE-Ratio")}>PE-ratio</button>

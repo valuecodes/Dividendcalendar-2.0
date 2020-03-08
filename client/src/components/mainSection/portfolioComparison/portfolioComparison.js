@@ -79,26 +79,26 @@ export class PortfolioComparison extends Component {
                     employees: data[keys[i]].tickerData.employees,
                 }
 
-                if (data[keys[i]].qFinancials.length === 1) {
+                if (data[keys[i]].yearData.length === 1) {
                     continue;
                 }
 
                 employeesRevOb.push([{
                     name: keys[i],
-                    revenue: (data[keys[i]].qFinancials[1].revenue * 1000000) / data[keys[i]].tickerData.employees
+                    revenue: (data[keys[i]].yearData[1].Revenue * 1000000) / data[keys[i]].tickerData.employees
                 }]);
                 let comma = data[keys[i]].tickerData.country === 'USA' ? 1000000 : 1000;
                 employeesProOb.push([{
                     name: keys[i],
-                    profit: (data[keys[i]].qFinancials[1].ttmnetincome * comma) / data[keys[i]].tickerData.employees
+                    profit: (data[keys[i]].yearData[1].NetIncome * comma) / data[keys[i]].tickerData.employees
                 }]);
                 marginOb.push([{
                     name: keys[i],
-                    margin: data[keys[i]].qFinancials[1].netmargin,
+                    margin: data[keys[i]].yearData[1].NetProfitMargin,
                 }]);
                 cratioOb.push([{
                     name: keys[i],
-                    cratio: data[keys[i]].qFinancials[1].cratio,
+                    cratio: data[keys[i]].yearData[1].CurrentRatio,
                 }]);
                 insiderOb.push([{
                     name: keys[i],
@@ -107,9 +107,9 @@ export class PortfolioComparison extends Component {
 
 
                 let eps = 0;
-                for (var a = 0; a < 4; a++) {
-                    if (data[keys[i]].qFinancials[a].eps) {
-                        eps += data[keys[i]].qFinancials[a].eps;
+                for (var a = 0; a < 1; a++) {
+                    if (data[keys[i]].yearData[a].EPSEarningsPerShare) {
+                        eps += data[keys[i]].yearData[a].EPSEarningsPerShare;
                     }
                 }
                 payoutRatioOb.push([{

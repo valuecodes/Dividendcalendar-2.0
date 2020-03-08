@@ -508,7 +508,7 @@
   display: grid;
   padding-left: 40px;
   margin-top: 20px;
-  grid-template-columns: 280px 60px repeat(5,1fr);
+  grid-template-columns: 280px 60px repeat(4,1fr);
 }
 
 #earningsChartLabel{

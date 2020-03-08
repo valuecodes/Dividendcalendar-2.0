@@ -29,7 +29,7 @@ export class PriceChart extends Component {
             let iStyle = [];
             let iColor = [];
             let dColor = [];
-
+            console.log(props.selectedCompany);
             let timeFrame = 2021 - state.timeFrame;
             let divData = [...props.selectedCompany.dividendData];
             let insiderData = [...props.selectedCompany.insiderData];
@@ -101,7 +101,6 @@ export class PriceChart extends Component {
                             }
                         }
                     }
-
                     let insider = insiderData.filter(inElement => inElement.year === element.year && inElement.month === element.month);
                     insiderData.splice(0, insider.length);
 

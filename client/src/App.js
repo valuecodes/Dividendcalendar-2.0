@@ -199,20 +199,21 @@ export class App extends Component {
         },
         body: JSON.stringify(data)
       }
+      console.log(options);
       fetch('http://localhost:3000/getDividendData', options)
         .then(res => res.json())
         .then(dbData => {
           let divData = this.state.dividendData;
           class company {
-            constructor(tickerData, weeklyData, yearData, dividendData, qFinancials, insiderData) {
+            constructor(tickerData, weeklyData, yearData, dividendData, insiderData) {
               this.tickerData = tickerData;
               this.weeklyData = weeklyData;
               this.yearData = yearData;
               this.dividendData = dividendData;
-              this.qFinancials = qFinancials;
               this.insiderData = insiderData;
             }
           }
+          console.log(dbData);
           for (var i = 0; i < dbData.data.length; i++) {
             divData[dbData.data[i][0].ticker] = new company(
               dbData.data[i][0],
@@ -220,7 +221,6 @@ export class App extends Component {
               dbData.data[i][2],
               dbData.data[i][3],
               dbData.data[i][4],
-              dbData.data[i][5]
             );
           }
           if (!Object.keys(this.state.currentportfolio).length === true) {

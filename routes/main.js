@@ -16,11 +16,9 @@ app.get('/tickerList', function (req, res) {
 });
 
 app.post('/search', function (req, res) {
-    console.log(req.body);
     req.getConnection(function (error, con) {
         con.query("SELECT * FROM tickers WHERE ticker='" + req.body.name + "'", function (err, result, fields) {
             if (err) throw error;
-            console.log(result);
             res.json({
                 status: 'success',
                 data: result
@@ -40,7 +38,6 @@ app.get('/portfolioList', (req, res) => {
 })
 
 app.post('/createPortfolio', (req, res) => {
-    console.log(req.body);
     let tickerData = req.body.tickers;
     let tickers = '';
     for (var i = 0; i < tickerData.length; i++) {
@@ -97,7 +94,7 @@ app.post('/savePortfolio', (req, res) => {
 })
 
 app.post('/getDividendData', function (req, res) {
-    // console.log(req.body.data);
+    console.log(req.body.data);
 
     tickers = '';
     for (var i = 0; i < req.body.data.length; i++) {
@@ -122,38 +119,32 @@ app.post('/getDividendData', function (req, res) {
             con.query(sql, function (err, result, fields) {
                 if (err) throw error;
                 let dividends = result;
-                let sql = "SELECT * FROM qfinancials where ticker_id in (" + fkey + ")";
-                con.query(sql, function (err, result1, fields) {
-                    let qfinancials = result1;
-                    let sql = "SELECT * FROM yeardata where ticker_id in (" + fkey + ")";
-                    con.query(sql, function (err, result3, fields) {
-                        // console.log(result3);
-                        let yeardata = result3;
-                        let sql = "SELECT * FROM insider where ticker_id in (" + fkey + ")";
-                        con.query(sql, function (err, result4, fields) {
-                            let insider = result4;
+                let sql = "SELECT * FROM yeardata where ticker_id in (" + fkey + ")";
+                con.query(sql, function (err, result3, fields) {
+                    // console.log(result3);
+                    let yeardata = result3;
+                    let sql = "SELECT * FROM insider where ticker_id in (" + fkey + ")";
+                    con.query(sql, function (err, result4, fields) {
+                        let insider = result4;
 
-                            let sql = "SELECT * FROM weeklydata where ticker_id in (" + fkey + ")";
-                            con.query(sql, function (err, result5, fields) {
-                                let wdata = result5;
+                        let sql = "SELECT * FROM weeklydata where ticker_id in (" + fkey + ")";
+                        con.query(sql, function (err, result5, fields) {
+                            let wdata = result5;
 
-                                let dataArray = [];
-                                for (var a = 0; a < fkey.length; a++) {
-                                    let weData = wdata.filter(element => element.ticker_id == fkey[a]);
-                                    let yeData = yeardata.filter(element => element.ticker_id == fkey[a]);
-                                    let diData = dividends.filter(element => element.ticker_id == fkey[a]);
-                                    let qfData = qfinancials.filter(element => element.ticker_id == fkey[a]);
-                                    let inData = insider.filter(element => element.ticker_id == fkey[a]);
-                                    dataArray.push([fresult[a], weData, yeData, diData, qfData, inData]);
-                                }
-                                console.log(dataArray);
+                            let dataArray = [];
+                            for (var a = 0; a < fkey.length; a++) {
+                                let weData = wdata.filter(element => element.ticker_id == fkey[a]);
+                                let yeData = yeardata.filter(element => element.ticker_id == fkey[a]);
+                                let diData = dividends.filter(element => element.ticker_id == fkey[a]);
+                                let inData = insider.filter(element => element.ticker_id == fkey[a]);
+                                dataArray.push([fresult[a], weData, yeData, diData, inData]);
+                            }
+                            console.log(dataArray);
 
-                                res.json({
-                                    data: dataArray,
-                                    message: 'All data received'
-                                });
-
-                            })
+                            res.json({
+                                data: dataArray,
+                                message: 'All data received'
+                            });
 
                         })
 

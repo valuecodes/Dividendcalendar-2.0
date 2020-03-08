@@ -62,10 +62,10 @@ export class StatChart extends Component {
             let countries = {};
 
             for (var a = 0; a < stake.length; a++) {
-                if (countries[divData[stakeLabel[a]].tickerData.country]) {
-                    countries[divData[stakeLabel[a]].tickerData.country] += stake[a];
+                if (countries[divData[stakeLabel[a]].tickerData.countryName]) {
+                    countries[divData[stakeLabel[a]].tickerData.countryName] += stake[a];
                 } else {
-                    countries[divData[stakeLabel[a]].tickerData.country] = stake[a];
+                    countries[divData[stakeLabel[a]].tickerData.countryName] = stake[a];
                 }
             }
             for (let key in countries) {
