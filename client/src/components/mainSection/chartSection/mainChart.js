@@ -68,6 +68,10 @@ export class MainChart extends Component {
                     fontSize: 22
                 }
             },
+            animation: {
+                duration: 2000,
+                easing: 'easeOutCubic'
+            },
             layout: {
                 padding: {
                     top: 42,

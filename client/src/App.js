@@ -8,6 +8,7 @@ import { Calender } from './components/mainSection/calender/calender';
 import { ChartSection } from './components/mainSection/chartSection/chartSection';
 import { TickerInfoPage } from './components/mainSection/tickerInfoSection/tickerInfoPage';
 import { PortfolioComparison } from './components/mainSection/portfolioComparison/portfolioComparison'
+import { FinancialComparison } from './components/mainSection/financialComparison/financialComparison'
 
 export class App extends Component {
   active = [];
@@ -20,6 +21,7 @@ export class App extends Component {
       monthStack: [],
       infoPage: 'none',
       portfolioComparison: 'none',
+      financialComparison: 'none',
       mainPage: '',
       selectedCompany: null
     };
@@ -258,28 +260,34 @@ export class App extends Component {
   }
 
   showTickerInfo(ticker) {
-    this.setState({ mainPage: 'none', infoPage: '', portfolioComparison: 'none', selectedCompany: this.state.dividendData[ticker] });
+    this.setState({ mainPage: 'none', infoPage: '', portfolioComparison: 'none', financialComparison: 'none', selectedCompany: this.state.dividendData[ticker] });
   }
 
   closeInfoPage() {
-    this.setState({ mainPage: '', infoPage: 'none', portfolioComparison: 'none', selectedCompany: null });
+    this.setState({ mainPage: '', infoPage: 'none', portfolioComparison: 'none', financialComparison: 'none', selectedCompany: null });
   }
 
   showComparison() {
-    this.setState({ mainPage: 'none', infoPage: 'none', portfolioComparison: '', selectedCompany: null });
+    this.setState({ mainPage: 'none', infoPage: 'none', portfolioComparison: '', financialComparison: 'none', selectedCompany: null });
   }
 
   closeComparison() {
-    this.setState({ mainPage: '', infoPage: 'none', portfolioComparison: 'none', selectedCompany: null })
+    this.setState({ mainPage: '', infoPage: 'none', portfolioComparison: 'none', financialComparison: 'none', selectedCompany: null })
+  }
+
+  showFinancialComparison() {
+    console.log('test');
+    this.setState({ mainPage: 'none', infoPage: 'none', portfolioComparison: 'none', financialComparison: '', selectedCompany: null });
   }
 
   render() {
+    console.log(this.state.monthStack)
     return (
       < div className="App" >
         <header className="App-header">
           <Header />
-          <NavBar addTicker={this.addTicker.bind(this)} comparison={this.showComparison.bind(this)} />
-          <div className='mainSection'>
+          <NavBar addTicker={this.addTicker.bind(this)} comparison={this.showComparison.bind(this)} financialComparison={this.showFinancialComparison.bind(this)} monthStack={this.state.monthStack} />
+          <div className='mainSection' >
             <div className='mainList'>
               <Portfolios createPortfolio={this.createPortfolio.bind(this)} allPortfolios={this.state.portfolios} selectPortfolio={this.selectPortfolio.bind(this)} selectedPortfolio={this.state.currentportfolio.name} deletePortfolio={this.deletePortfolio.bind(this)} />
               <MainTickerList onChange={this.currentportfolio} tickers={this.state.currentportfolio.tickers} deleteTicker={this.deleteTicker.bind(this)} addShares={this.addShares.bind(this)} showTickerInfo={this.showTickerInfo.bind(this)} />
@@ -289,6 +297,9 @@ export class App extends Component {
             </div>
             <div id='portfolioComparison' style={{ display: this.state.portfolioComparison }}>
               <PortfolioComparison selectedCompany={this.state.selectedCompany} closeComparison={this.closeComparison.bind(this)} portfolio={this.state.currentportfolio} state={this.state.portfolioComparison} />
+            </div>
+            <div id='financialComparison' style={{ display: this.state.financialComparison }}>
+              <FinancialComparison closeComparison={this.closeComparison.bind(this)} portfolio={this.state.currentportfolio} state={this.state.financialComparison} />
             </div>
             <div style={{ display: this.state.mainPage }}>
               <Calender currentportfolio={this.state.currentportfolio} setMonthStack={this.setMonthStack.bind(this)} />
