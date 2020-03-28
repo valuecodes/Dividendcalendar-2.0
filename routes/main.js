@@ -3,8 +3,6 @@ var app = express();
 let path = require('path');
 app.use(express.json());
 
-
-
 app.get('/tickerList', function (req, res) {
     req.getConnection(function (error, con) {
         con.query("SELECT * FROM tickers", function (err, result, fields) {
