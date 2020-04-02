@@ -3,7 +3,6 @@ import { PortFolioStats } from './portfolioStats';
 import { MainChart } from './mainChart';
 import { StatChart } from './statChart';
 import { PortfolioRecap } from './portfolioRecap';
-import { Spring } from 'react-spring/renderprops';
 
 export class ChartSection extends Component {
 

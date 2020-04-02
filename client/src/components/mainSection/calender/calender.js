@@ -31,7 +31,7 @@ export class Calender extends Component {
         let sdays = [];
         let eblock = [];
 
-        console.log(mdays);
+        // console.log(mdays);
         for (var i = 0; i < 12; i++) {
             let m = [];
             for (var a = 1; a <= mdays[i]; a++) {
@@ -52,7 +52,7 @@ export class Calender extends Component {
             eblock.push(eb);
         }
 
-        console.log(eblock);
+        // console.log(eblock);
         this.setState({ monthDays: days, startDays: sdays, endBlocks: eblock });
     }
 

@@ -2,6 +2,8 @@ var express = require('express');
 var app = express();
 let path = require('path');
 app.use(express.json());
+require('dotenv').config();
+console.log(process.env.API_KEY)
 
 app.get('/tickerList', function (req, res) {
     req.getConnection(function (error, con) {

@@ -6,8 +6,8 @@ export class PortfolioResults extends Component {
     constructor() {
         super();
         this.state = {
-            chartData: [],
-            chartOptions: [],
+            chartData: {},
+            chartOptions: {},
         };
     }
 
@@ -17,7 +17,6 @@ export class PortfolioResults extends Component {
             let result = [];
             for (var i = 0; i < data.length; i++) {
                 for (var a = 0; a < data[i].length; a++) {
-                    console.log(data[i][a]);
                     if (result[data[i][a]]) {
                         result[data[i][a]] += a;
                     } else {
@@ -67,6 +66,14 @@ export class PortfolioResults extends Component {
                             beginAtZero: true,
                             fontSize: 20,
                         }
+                    }],
+                    xAxes: [{
+
+                        ticks: {
+                            beginAtZero: true,
+
+                            // fontSize: 20,
+                        }
                     }]
                 },
                 legend: {
@@ -83,8 +90,8 @@ export class PortfolioResults extends Component {
 
         }
         return {
-            chartData: [],
-            chartOptions: []
+            // chartData: [],
+            // chartOptions: []
         }
     }
 
