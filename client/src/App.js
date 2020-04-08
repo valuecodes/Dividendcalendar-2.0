@@ -4,12 +4,12 @@ import { NavBar } from './components/navBar/NavBar';
 import { Header } from './components/header/Header';
 import { Portfolios } from './components/mainSection/portfolios/Portfolios';
 import { MainTickerList } from './components/mainSection/MainList/MainTickerList';
-// import { Calender } from './components/mainSection/calender/calender';
-// import { ChartSection } from './components/mainSection/chartSection/chartSection';
+import { Calender } from './components/mainSection/calender/calender';
+import { ChartSection } from './components/mainSection/chartSection/chartSection';
 import { TickerInfoPage } from './components/mainSection/tickerInfoSection/tickerInfoPage';
 import { PortfolioComparison } from './components/mainSection/portfolioComparison/portfolioComparison'
 import { FinancialComparison } from './components/mainSection/financialComparison/financialComparison'
-// import { GeoChart } from './components/mainSection/chartSection/geoChart'
+import { GeoChart } from './components/mainSection/chartSection/geoChart'
 
 export class App extends Component {
   active = [];
@@ -301,14 +301,14 @@ export class App extends Component {
               <FinancialComparison closeComparison={this.changeMainPage.bind(this, 'mainPage')} portfolio={this.state.currentportfolio} state={this.state.financialComparison} />
             </div>
             <div style={{ display: this.state.calender }}>
-              {/* <Calender currentportfolio={this.state.currentportfolio} setMonthStack={this.setMonthStack.bind(this)} /> */}
+              <Calender currentportfolio={this.state.currentportfolio} setMonthStack={this.setMonthStack.bind(this)} />
             </div>
             <div id='portfolioStatistics' style={{ display: this.state.stats }}>
-              {/* <GeoChart portfolio={this.state.currentportfolio} /> */}
+              <GeoChart portfolio={this.state.currentportfolio} />
             </div>
           </div>
           <div style={{ display: this.state.mainPage }}>
-            {/* <ChartSection monthStackData={this.state.monthStack} allData={this.state.dividendData} portfolio={this.state.currentportfolio} changeMainPage={this.changeMainPage.bind(this)} /> */}
+            <ChartSection monthStackData={this.state.monthStack} allData={this.state.dividendData} portfolio={this.state.currentportfolio} changeMainPage={this.changeMainPage.bind(this)} />
           </div>
         </header>
       </div >

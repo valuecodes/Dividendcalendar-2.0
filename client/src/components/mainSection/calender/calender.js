@@ -157,29 +157,29 @@ export class Calender extends Component {
                 >
                     {props => (
                         <div style={props} id='monthCalender'>
-                            {this.state.weekDays.map(day =>
-                                <div className='dayBlock'>
+                            {this.state.weekDays.map((day, index) =>
+                                <div key={index} className='dayBlock'>
                                     <p className='dayBlockHeader'>{day}</p>
                                 </div>
                             )}
 
                             {this.state.startDays[this.state.currentMonth].map((day, index) => {
                                 if (index > 1) {
-                                    return <div className='fillBlockTop'>
+                                    return <div key={index} className='fillBlockTop'>
                                         {/* <p className='dayBlockHeader'>{day}</p> */}
                                     </div>
                                 }
                             }
                             )}
-                            {this.state.monthDays[this.state.currentMonth].map(day =>
-                                <div className='dayBlock'>
+                            {this.state.monthDays[this.state.currentMonth].map((day, index) =>
+                                <div key={index} className='dayBlock'>
                                     <p id={'day.' + day}>{day}</p>
                                 </div>
                             )}
 
                             {this.state.endBlocks[this.state.currentMonth].map((day, index) => {
                                 if (index >= 1) {
-                                    return <div className='fillBlockBottom'>
+                                    return <div key={index} className='fillBlockBottom'>
                                         {/* <p className='fillBlockBottom'></p> */}
                                     </div>
                                 }

@@ -3,7 +3,8 @@ var app = express();
 let path = require('path');
 app.use(express.json());
 require('dotenv').config();
-console.log(process.env.API_KEY)
+
+console.log(process.env.ALPHA_KEY)
 
 app.get('/tickerList', function (req, res) {
     req.getConnection(function (error, con) {
@@ -14,6 +15,20 @@ app.get('/tickerList', function (req, res) {
         });
     });
 });
+
+app.get('/apikey', (req, res) => {
+    res.json({
+        apikey: process.env.API_KEY,
+    })
+})
+
+app.get('/alphakey', (req, res) => {
+    res.json({
+        apikey: process.env.ALPHA_KEY,
+    })
+})
+
+
 
 app.post('/search', function (req, res) {
     req.getConnection(function (error, con) {
